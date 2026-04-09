@@ -1,0 +1,50 @@
+# ============================================================
+# Private / do-not-publish
+# ============================================================
+
+# Marketing and launch plans — private. Contains post drafts,
+# DM templates, and internal strategy. Never ship publicly.
+launch/
+
+# User-generated output from running the skills. Each user
+# creates their own ./gtm/ when they run /start. Never ship.
+gtm/
+
+# ============================================================
+# Secrets
+# ============================================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ============================================================
+# Editor / OS cruft
+# ============================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ============================================================
+# Language-specific (in case anyone adds scripts)
+# ============================================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+node_modules/
+dist/
+build/
+*.log
