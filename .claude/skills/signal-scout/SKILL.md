@@ -33,11 +33,37 @@ Read `./gtm/icp.md` and `./gtm/company.md` if they exist.
 If neither exists, ask: "What do you sell and who do you sell to?" Then
 proceed. Don't require /start to have been run.
 
+**If running standalone (no icp.md exists):** After the user answers,
+create a minimal `./gtm/icp.md` with their response before continuing:
+```markdown
+# ICP Profile
+## What We Sell
+{their answer}
+## Target Buyer
+{their answer — title, company size, industry}
+```
+This ensures /prospect can read the ICP when it auto-continues.
+
 **Check for Won Deal Patterns in icp.md.** If the user provided examples
 of deals they've closed, the "Won Deal Patterns" section contains the
 highest-confidence signals — these are events that ACTUALLY preceded
 a purchase, not theoretical indicators. Prioritize these over everything
 else when building the signal list.
+
+**Check for Lost Deal Anti-Signals in icp.md.** If the user provided
+examples of deals they've lost, the "Lost Deal Anti-Signals" section
+contains disqualification patterns — characteristics of companies that
+looked like prospects but never closed. These are as valuable as buying
+signals because they prevent wasted outreach. From actual ICP analyses:
+80% of lost companies were disqualifiable using just 2-3 anti-fit signals.
+
+**CRM field warning:** If the user provides CRM data or mentions fields
+like catalyst note count, champion count, MEDDPICC scores, or any
+"did the AE do X" metric — DO NOT use these as signals. They're
+downstream artifacts of AE engagement, not causal properties of the
+account. They correlate with wins because someone was working the deal,
+not because the account was a good fit. Every scoring input must be
+observable BEFORE the AE touches the account.
 
 Show what you loaded:
 
@@ -45,6 +71,8 @@ Show what you loaded:
   Loaded: {company} sells {product} to {buyer type}.
   {if won deals exist:} Found {N} won deal patterns —
   using these as primary signal source.
+  {if lost deals exist:} Found {N} lost deal patterns —
+  using these to build anti-signals.
   Researching signals that indicate buying intent.
 ```
 
@@ -154,6 +182,106 @@ in public sources.
 - `site:twitter.com "{problem keyword}" recommend OR looking for`
 - `site:linkedin.com/posts "{topic}" OR "{pain point}"`
 
+## Signal Reliability Hierarchy
+
+Not all signals are equally trustworthy. Rank your discovered signals
+using this hierarchy (highest → lowest confidence):
+
+1. **Job listings** — Active budget + acknowledged pain. Highest-intent
+   because they're spending money to solve the problem with people,
+   which means they'd also spend money on tools. (Typical lift: 3.8-5.5x)
+2. **Proven signals from won deals** — Validated by actual purchases.
+   Higher confidence than any research-based signal.
+3. **Behavioral signals** (buyer posting/asking about the problem) —
+   Active awareness. The buyer is thinking about this right now.
+4. **Negative signals** (churn, turnover, declining metrics) —
+   Pain creates urgency. Strong triggers but harder to find.
+5. **Compliance/procurement infrastructure** (SOC2, GDPR, ISO) —
+   Indicates formal buying process, higher close rates. (Lift: 2.1-6.5x)
+6. **Tech stack tools** (niche SaaS in their stack) — Infrastructure
+   readiness. But context matters: does the tool create or solve the
+   problem? (Lift: 1.5-5.5x)
+7. **Website content** — Variable and the most unreliable. A company
+   mentioning your product category on their site might be a BUYER
+   or a COMPETITOR. Always cross-check. (See interpretation rules below)
+8. **Transactional signals** (funding, hiring, M&A) — Table-stakes.
+   Every sales tool surfaces these. Useful as supporting signals but
+   weakest as standalone triggers.
+
+**When website signals fail:** For B2B back-office tools (AR, billing,
+compliance, HR), buyers don't publish their pain on websites. In actual
+analyses: 0 of 7 verified customers had relevant website signals. For
+these verticals, lean on job listings, tech stack, and firmographics.
+
+## Signal Interpretation Rules
+
+**CRITICAL: Same keyword means different things depending on source.**
+
+Before adding any signal to the list, classify WHERE it appears:
+- **Product/features page:** Company SELLS this → competitor signal, NOT buyer
+- **Careers/jobs page:** Company NEEDS this → buyer signal (high intent)
+- **Blog/case study:** Could be either — is the author writing as vendor
+  (promoting their solution) or sharing operational experience?
+- **Integrations page:** They connect to relevant systems → infrastructure signal
+
+**The #1 false positive:** If a company's website mentions terms
+describing what you sell, they're likely a COMPETITOR or adjacent vendor,
+not a buyer. Example: for an AR automation tool, a company whose website
+says "our collections automation platform" is a seller. A company whose
+job listing says "seeking AR Manager to reduce DSO" is a buyer.
+
+**Tech stack correlation matters:** Not all tech signals are equal.
+- **Positive correlation:** Technologies that create MORE complexity
+  you solve (ERP, CRM, payment processors for AR tools)
+- **Inverse correlation:** Technologies that SOLVE the problem already
+  (Shopify for AR tools — consumer payments are immediate, not invoiced)
+
+**n=1 signals need flagging.** A signal appearing in only 1 company
+produces high theoretical confidence but is statistically unreliable.
+Flag single-company signals with "*(single source — verify)*" and
+never use them as primary scoring criteria.
+
+## Anti-Signals (from Lost Deals + Research)
+
+Anti-signals are as valuable as buying signals. They identify companies
+that LOOK like prospects but will never close. Catching these early
+saves hours of wasted research and outreach.
+
+**Step 2b: Build Anti-Signal List**
+
+Start with lost-deal patterns from icp.md (if available). Then
+supplement with research:
+
+**From lost deals (highest confidence):**
+Extract what the lost companies had in common. Common patterns:
+- Wrong business model (B2C not B2B, consumer not enterprise)
+- Competitor or adjacent vendor (they sell what you sell)
+- Wrong stage (too early, no budget; too late, already solved it)
+- Wrong department structure (no relevant buyer title exists)
+- Cultural mismatch (no process, no tools, not ready for automation)
+
+**From market research (supplement):**
+- Consumer signals (shopper, checkout, cart, debit) → B2C company
+- Retention/churn language on their product pages → consumer
+  subscription model, not enterprise buying (typical lift: 0.2-0.4x)
+- Selling same product category → competitor, not buyer (lift: 0.1-0.3x)
+- No job listings in 12+ months → not growing, no hiring budget
+- Their target customer is consumers, not businesses
+- Under minimum employee count for your product's sweet spot
+
+**Anti-signal search queries:**
+- `"{product category}" competitors` → build a competitor list
+- `site:g2.com "{product category}"` → find companies in the space
+- WebSearch for companies that sell similar products → these are
+  NOT your prospects, they're your competitors
+
+**How anti-signals flow into /prospect:**
+The anti-signal list becomes a disqualification checklist. When
+/prospect finds a company, it checks against anti-signals first.
+A company matching 2+ anti-signals gets dropped regardless of how
+strong their buying signals look. This is the fastest way to
+improve prospect quality.
+
 ### Step 3: Present Signal Types for Approval
 
 ```
@@ -224,23 +352,52 @@ in public sources.
   THEIR CUSTOMER SIGNALS (advanced)
   ─────────────────────────────────────────────
 
-  ⑥ {What's happening to their buyer's customers}
+  ⑧ {What's happening to their buyer's customers}
      Example: {if findable}
 
   SOCIAL SIGNALS (warmest — people talking now)
   ─────────────────────────────────────────────
 
-  ⑦ Reddit: {subreddits + thread types to monitor}
+  ⑨ Reddit: {subreddits + thread types to monitor}
      Example: {recent thread found via search}
      Search: {working query}
 
-  ⑧ X/Twitter: {topics + post types to watch}
+  ⑩ X/Twitter: {topics + post types to watch}
      Example: {recent post found via search}
      Search: {working query}
 
-  ⑨ LinkedIn: {post topics where commenters = prospects}
+  ⑪ LinkedIn: {post topics where commenters = prospects}
      Example: {recent post found via search}
      Search: {working query}
+
+  ANTI-SIGNALS (disqualify fast — saves the most time)
+  ─────────────────────────────────────────────
+  Companies showing these patterns look like prospects
+  but will never close. Drop them before researching.
+
+  {If lost deal patterns exist in icp.md:}
+  From your lost deals:
+  ✗ {Anti-signal from Loss 1} — proven non-buyer
+  ✗ {Anti-signal from Loss 2} — proven non-buyer
+
+  From market research:
+  ✗ {Anti-signal}: {why this disqualifies}
+  ✗ {Anti-signal}: {why this disqualifies}
+  ✗ {Anti-signal}: {why this disqualifies}
+
+  {If no lost deals, skip the "From your lost deals"
+  sub-section and populate from research only.}
+
+  SIGNAL RELIABILITY (strongest → weakest)
+  ─────────────────────────────────────────────
+  ① Job listings (active budget)
+  ② Proven signals (from your won deals)
+  ③ Behavioral (buyer actively discussing problem)
+  ④ Negative (pain events — churn, turnover)
+  ⑤ Compliance/procurement infra (SOC2, ISO)
+  ⑥ Tech stack (niche tools in their stack)
+  ⑦ Website content (unreliable — check seller vs buyer)
+  ⑧ Transactional (funding, hiring — table stakes)
 
   ──────────────────────────────────────────────
 
@@ -253,8 +410,17 @@ in public sources.
 Wait for user confirmation. They may:
 - Confirm → save signals.md and route
 - Add signal types they know from experience
-- Remove signals that aren't relevant
+- Remove signals that aren't relevant → remove and re-present
 - Reprioritize (move moderate to high, etc.)
+- Ask questions ("what's a behavioral signal?", "why is this
+  important?") → answer in plain language, then re-present
+- Request changes to specific signals → modify, then re-present
+  the FULL signal list (not just the changed part) for final
+  confirmation before saving signals.md
+
+**After ANY modification, re-present the complete signal list.**
+The user must see the full picture before signals.md is written
+and /prospect auto-starts.
 
 ### Step 4: Save and Route
 
@@ -281,6 +447,34 @@ Create `./gtm/signals.md`:
 - Reddit: {subreddits + thread types + working query}
 - X/Twitter: {topics + post types + working query}
 - LinkedIn: {post topics + working query}
+
+## Anti-Signals (disqualifiers)
+{Patterns that indicate a company is NOT a buyer. Check these
+BEFORE investing time in research or outreach.}
+
+### From Lost Deals
+- {anti-signal}: {from Loss 1 — what was observable before the deal}
+- {anti-signal}: {from Loss 2}
+
+### From Research
+- {anti-signal}: {why this disqualifies — e.g., "competitor, not buyer"}
+- {anti-signal}: {why this disqualifies}
+- {anti-signal}: {why this disqualifies}
+
+### Competitor List (do not prospect)
+- {competitor 1} — {domain}
+- {competitor 2} — {domain}
+- {competitor 3} — {domain}
+
+## Signal Reliability Hierarchy
+1. Job listings (active budget + acknowledged pain)
+2. Proven signals (from won deals)
+3. Behavioral (buyer discussing problem)
+4. Negative (churn, turnover, declining metrics)
+5. Compliance/procurement infra
+6. Tech stack (context-dependent)
+7. Website content (check seller vs buyer)
+8. Transactional (funding, hiring — weakest standalone)
 
 ## Confirmed
 {date} — user approved
@@ -319,6 +513,22 @@ query that returned results during your research above.
 automatically proceed to run the /prospect process.** Do not wait
 for the user to type "/prospect". The user just confirmed what to
 search for — go search.
+
+---
+
+## Handling Questions and Tangents
+
+If the user asks a question ("what's a behavioral signal?", "why is
+job listings ranked #1?", "what does anti-signal mean?"), answer in
+plain language. Then resume: "Good question. [answer]. Here's the
+signal list — does it look right?"
+
+If they want to explore something ("can you find signals for a
+different buyer?", "what about industry X?"), do the research and
+fold it into the signal list. Re-present for approval.
+
+If they go off-topic, answer, then bring them back to the approval
+gate.
 
 ---
 

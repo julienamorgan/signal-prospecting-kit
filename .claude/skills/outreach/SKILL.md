@@ -56,6 +56,15 @@ Default to "both" if the user says nothing about channel preference.
 **Batch mode** (default): Read ./gtm/prospects.md, write for all
 prospects with status "ready". Present all for approval.
 
+**Channel per prospect:** Check the Email column in prospects.md.
+- Verified email → email + LinkedIn (or email-only if user chose)
+- Pattern-guess email → email + LinkedIn (note email needs verification)
+- "LinkedIn only" → LinkedIn connection request only (no email)
+
+This means a single batch may have a mix: some prospects get both
+channels, some get LinkedIn only. This is by design — every prospect
+gets outreach, just on the best available channel.
+
 **Single mode**: User names a specific prospect. Research and write
 outreach for that person. Update prospects.md if it exists.
 
@@ -191,6 +200,10 @@ End with a question or curiosity hook.}
 - No em dashes
 - No referencing specific posts they commented on
 - Don't explain how you found them
+- **Never name a specific social platform as a signal source.**
+  Reference the TOPIC being discussed, not WHERE it was discussed.
+  "There's been a lot of conversation about projection gaps" works.
+  "r/realestateinvesting has been loud about projection gaps" does not.
 - Signals should be specific enough that the prospect thinks
   "this person actually understands my market"
 - End with a question or implied curiosity, not a CTA
@@ -209,10 +222,13 @@ End with a question or curiosity hook.}
 messages should use the same opener pattern.
 
 **LinkedIn independence rule (when writing both channels):**
-The LinkedIn message MUST use a DIFFERENT angle than the email
-for the same prospect. Specifically:
-- Use a different signal (if the email leads with M&A, LinkedIn
-  leads with a market trend or product expansion)
+The LinkedIn message MUST use a COMPLETELY DIFFERENT angle than
+the email for the same prospect. Specifically:
+- Use a completely different signal. No signal reference should
+  appear in BOTH the email and the LinkedIn message for the same
+  prospect. If the email references a wholesale launch, the
+  LinkedIn cannot mention wholesale at all. Pick a different
+  signal entirely.
 - Use a different framing (if the email is an observation, LinkedIn
   is a question — or vice versa)
 - Never reference the same client/case study in both channels
@@ -372,14 +388,20 @@ prospect a different combination:
 ```
 
 **Rules (enforce before writing):**
+
+For batches of 5+ prospects:
 - No opener type used more than 3x in a batch
 - No bridge angle used more than 3x
 - No CTA used more than 3x
-- No client reference/case study used more than 3x (e.g., if you
-  have IHS Markit and Uber as references, spread them — don't put
-  IHS Markit in 5/8 emails)
+- No client reference/case study used more than 3x
 - At least 4 different bridge angles in a batch of 8+
 - No two adjacent emails should share the same opener+bridge combo
+
+For batches under 5 prospects:
+- Use as many different angles as there are prospects (e.g., 3
+  prospects = 3 different openers, 3 different bridges, 3 CTAs)
+- The 3x caps and 4+ minimums don't apply at small batch sizes
+- Still ensure no two emails share the same opener+bridge combo
 
 If you only have 1-2 client references, use "none" for some emails
 and let the product description carry the bridge instead.
@@ -605,11 +627,13 @@ Notes: {what they said, what worked, what didn't}
 ```
   LEARNINGS APPLIED
   ─────────────────────────────────────────────
-  Batches sent: {N}
+  Batches sent: {N} | Total sends: {N}
   Overall reply rate: {X}% email, {Y}% LinkedIn
   Best signal type: {type} ({Z}% reply rate)
   Best opener: {type} ({Z}% reply rate)
   Best bridge: {angle} ({Z}% reply rate)
+  {If total sends < 15:} ⚠ Small sample — patterns are
+  tentative. Weighting toward winners but still rotating.
   Adjustments: {what changed based on data}
 ```
 
@@ -628,6 +652,33 @@ The system should get measurably better over time:
 
 This is the compound advantage. Every other skill kit starts from
 zero every time. This one remembers what works.
+
+---
+
+## Handling Questions and Tangents
+
+If the user asks questions mid-flow ("why did you use that opener?",
+"can you explain what a bridge angle is?", "what if I want a different
+tone?"), answer the question, then resume where you left off.
+
+If they want to change direction ("actually, make all of these more
+casual", "switch to LinkedIn only", "I want to add a prospect"),
+apply the change and re-present. Don't start from scratch unless
+the change affects everything.
+
+If they ask for advice ("should I send email or LinkedIn?", "what
+subject line style works best?"), give your honest assessment based
+on their ICP, any learnings data, and general outbound patterns.
+Then return to the flow.
+
+**If the user connects a new tool mid-outreach** ("I just set up my
+Apollo API key", "I connected my email finder"): Re-detect the tool
+(check env vars or MCP tools), update icp.md Connected Tools, then
+offer to re-enrich "LinkedIn only" contacts from this batch. If they
+say yes, find emails for those contacts using the new tool, update
+prospects.md, and re-present the outreach with the new email+LinkedIn
+option for those contacts. Don't restart the whole batch — just
+upgrade the contacts that were LinkedIn-only.
 
 ---
 

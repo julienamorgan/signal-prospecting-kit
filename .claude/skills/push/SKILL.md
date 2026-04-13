@@ -28,35 +28,46 @@ sequencer, or export them as plain text files ready to copy-paste.
 
 Check `./gtm/icp.md` for Connected Tools and Stack sections.
 
-**If tools are connected, offer direct push first:**
+**If outreach/CRM tools are connected** (check Connected Tools in
+icp.md for any MCP connections or API keys), offer direct push:
 
 ```
-  {If Instantly API connected:}
-  I can push these directly to Instantly as a new
-  campaign. Or export as files. Which do you prefer?
-
-  {If HubSpot MCP connected:}
-  I can create these as HubSpot contacts with the
-  email sequence attached. Or export as files.
-
-  {If Clay MCP connected:}
-  I can push these contacts to a Clay table for
-  further enrichment before sending.
+  I can push these directly to {connected tool}
+  as a new campaign. Or export as files.
+  Which do you prefer?
 ```
+
+Use whatever tool is connected — follow its API conventions.
+Do NOT hardcode preferences for any specific tool.
 
 **If no direct push tools, offer file formats:**
 
+**Adapt the menu to the user's stack.** Read icp.md Stack section.
+If they use specific tools, name those tools in the options. If they
+have no tools (just Gmail, manual sending), simplify the menu.
+
 ```
+{If user has tools in their stack:}
+
   How do you want these exported?
 
-  1. Plain text (one file, copy-paste ready)
-  2. CSV (for Instantly, Apollo, Smartlead, etc.)
-  3. Outreach/Salesloft format
-  4. HubSpot sequences format
-  5. LinkedIn copy-paste (one file with all messages)
-  6. LinkedIn CSV (HeyReach, Dripify, etc.)
+  1. Plain text (copy-paste ready)
+  2. CSV (for {their sequencer or "email sending tools"})
+  3. {Their sequencer} format (if applicable)
+  4. {Their CRM} format (if applicable)
+  5. LinkedIn copy-paste (all messages with char counts)
+  6. LinkedIn CSV (for {their LinkedIn tool or "automation tools"})
   7. Both email + LinkedIn files
   8. Just show me — I'll copy them manually
+
+{If user has NO tools (Gmail, manual, etc.):}
+
+  How do you want these exported?
+
+  1. Plain text (copy-paste into Gmail)
+  2. LinkedIn copy-paste (all messages, ready to send)
+  3. Both email + LinkedIn text files
+  4. Just show me — I'll copy them manually
 ```
 
 ### Step 2: Gather Approved Outreach
@@ -251,25 +262,28 @@ mcp__claude_ai_Clay__add-contact-data-points:
 
   ──────────────────────────────────────────────
 
-  MISSING EMAILS ({N} of {total} need emails)
-  {If any prospects have "needs enrichment":}
+  {If any prospects are "LinkedIn only" or have pattern-guess emails:}
 
-  These prospects need email addresses. Options:
+  EMAIL STATUS
+  ─────────────────────────────────────────────
+  {N} verified emails → ready to send
+  {N} pattern-guess emails → verify before sending
+  {N} LinkedIn only → connection requests ready
 
-  {If API key available but wasn't used:}
-  → I can look these up now with {provider}.
-    Say "enrich" and I'll find the missing emails.
+  {If pattern-guess emails exist:}
+  Pattern-guess emails are based on the company's
+  email format. Verify them before sending — a
+  bounced email hurts your sender reputation.
 
-  {If API key mentioned but not connected:}
-  → Connect your {provider} API key to find them:
-    export {PROVIDER}_API_KEY=your_key_here
-    Then say "enrich" and I'll fill them in.
+  {If the user has an enrichment tool connected:}
+  Want me to try verifying the pattern-guess emails
+  with {connected tool}? Say "verify" and I'll check.
 
-  {If no enrichment tools:}
-  → Find them in Apollo, Hunter, or ZoomInfo
-  → Search LinkedIn profiles for contact info
-  → Try {company domain} patterns (first.last@,
-    flast@, firstinitiallast@)
+  {If no enrichment tools and user wants better emails:}
+  If you have access to any email verification or
+  enrichment tool, I can help you connect it and
+  verify these. Otherwise, the LinkedIn outreach
+  is ready to go as-is.
 
   ──────────────────────────────────────────────
 
@@ -287,21 +301,36 @@ mcp__claude_ai_Clay__add-contact-data-points:
   ✓ Don't send all {N} emails at once — spread
     across 2-3 days minimum
 
-  If you're not sure about any of these, your
-  sequencer (Instantly, Apollo, etc.) usually
-  handles warmup and send pacing for you.
+  {If sequencer in stack:}
+  Your sequencer handles warmup and send pacing
+  automatically — just check it's configured.
+
+  {If no sequencer (Gmail, manual sending):}
+  Since you're sending manually, keep it to
+  10-15 cold emails per day and space them out.
+  Don't send them all at once.
 
   ──────────────────────────────────────────────
 
   NEXT STEPS
 
-  1. {If emails missing:} Find missing email
-     addresses using your email finder
-  2. Check deliverability (domain auth, warmup)
-  3. Upload {filename} to {sequencer name}
-  4. Spread sends across 2-3 days (max 50/day)
-  5. Come back after replies and run /outreach
-     to log what worked (builds the learning loop)
+  {If pattern-guess emails exist:}
+  1. Verify pattern-guess emails before sending.
+     {If enrichment tool connected:} I can verify
+     these now — say "verify" and I'll check them.
+     {If no tools:} Send a test email to yourself
+     at the guessed address, or search LinkedIn
+     for the contact to confirm their email domain.
+
+  {Adapt to their stack:}
+  {If sequencer:} 2. Upload {filename} to {sequencer}
+  {If Gmail/manual:} 2. Copy-paste from the .txt file
+     into Gmail. Send 10-15 per day max.
+
+  3. Send LinkedIn connection requests manually
+     (copy from the LinkedIn .txt file)
+  4. Come back after replies and tell me what
+     worked — I'll log it and adjust next time
 
   ──────────────────────────────────────────────
 
@@ -448,11 +477,30 @@ Each cycle should be faster and more effective than the last.
 
 ---
 
+## Handling Questions and Tangents
+
+If the user asks about deliverability concepts ("what's SPF?", "how
+do I set up DKIM?", "what's domain warmup?"), explain in plain
+language with actionable steps. These are common questions at the
+export stage — answer fully, don't just point them elsewhere.
+
+If the user asks about tools ("should I get a sequencer?", "what's
+the best sending tool?"), research current options via WebSearch and
+give an honest recommendation based on their needs and budget.
+
+If the user wants to go back ("can you rewrite email #3?", "I want
+to add a prospect"), hand off to /outreach or /prospect as needed.
+Don't try to do their job from within /push.
+
+---
+
 ## Edge Cases
 
 **No sequencer in stack:**
-Default to plain text. Mention that a sequencer like Instantly or
-Apollo can automate sending at scale.
+Default to plain text. If the user asks what tools they should use
+for automated sending, research current options via WebSearch and
+give an honest recommendation based on their budget and needs.
+Do not hardcode preferences for any specific tool.
 
 **User wants to send directly from here:**
 This kit doesn't send emails. It writes and exports them. The user

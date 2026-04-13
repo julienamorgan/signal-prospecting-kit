@@ -118,6 +118,40 @@ Note: API key REFERENCES are fine (e.g., "$APOLLO_API_KEY",
   ✓ Approval gates at: profile, signal-scout, prospect, outreach
   ✓ All skills show "what was loaded" before working
   ✓ All skills work standalone (graceful degradation)
+
+Anti-signal data flow:
+  ✓ /start collects lost deals in Q2 (optional)
+  ✓ /start saves Lost Deal Anti-Signals to icp.md
+  ✓ /signal-scout reads lost deals from icp.md
+  ✓ /signal-scout generates anti-signal list + competitor list
+  ✓ /signal-scout saves anti-signals to signals.md
+  ✓ /prospect reads anti-signals from signals.md
+  ✓ /prospect applies anti-signal penalties in scoring
+  ✓ /prospect shows Flagged + Dropped sections with anti-signal reasons
+  ✓ Flow works if lost deals are empty (theoretical anti-signals used)
+
+Tool-agnostic enrichment flow:
+  ✓ /start asks about email enrichment conversationally (no hardcoded tools)
+  ✓ /start does NOT recommend specific software unprompted
+  ✓ /prospect uses whatever tools are connected, no preference hierarchy
+  ✓ /prospect pattern-guesses emails when no enrichment tools available
+  ✓ /prospect marks contacts "LinkedIn only" when no email found
+  ✓ /outreach writes LinkedIn-only for contacts without email
+  ✓ /push shows email status breakdown (verified / pattern-guess / LinkedIn only)
+  ✓ /push does NOT hardcode recommendations for specific tools
+
+Orchestrator resilience:
+  ✓ All 6 skills have "Handling Questions and Tangents" sections
+  ✓ Users can ask "what tool should I use?" and get researched answer
+  ✓ Users can skip ahead (skills ask for what they need inline)
+  ✓ Users can go off-topic and resume with "continue"
+  ✓ Approval gates handle rejection with re-research, not just deletion
+  ✓ /start returning mode updates icp.md when new tools detected
+  ✓ /prospect handles mid-session tool changes and ICP changes
+  ✓ /outreach handles mid-flow tool connection (re-enriches LinkedIn-only)
+  ✓ /signal-scout standalone creates minimal icp.md for downstream
+  ✓ /prospect standalone generates signals inline if signals.md missing
+  ✓ /push adapts format menu and deliverability to user's actual stack
 ```
 
 ---
@@ -128,11 +162,16 @@ Note: API key REFERENCES are fine (e.g., "$APOLLO_API_KEY",
 
 ```
   ✓ Shows empty state scan with all 6 context files
+  ✓ Empty state includes plain-english descriptions for jargon terms
+    (ICP Profile → "your ideal customer", Signal Types → "events that
+    suggest someone needs your product")
+  ✓ Q1 uses "email sending tool" not "sequencer"
   ✓ Asks exactly 2 compound questions
   ✓ Q1 covers: domain, ICP, stack, do-not-contact
   ✓ Q1 does NOT ask about API keys (auto-detected in Step 3)
-  ✓ Q2 covers: cold emails that got replies + deals won
+  ✓ Q2 covers: cold emails that got replies + deals won + deals LOST
   ✓ Q2 does NOT say "paste a writing sample" (old version)
+  ✓ Lost deals marked as optional but valuable
   ✓ Accepts partial answers gracefully
   ✓ Researches company domain via WebSearch/WebFetch
 ```
@@ -141,16 +180,26 @@ Note: API key REFERENCES are fine (e.g., "$APOLLO_API_KEY",
 
 ```
   ✓ Step is marked CRITICAL, DO NOT SKIP in SKILL.md
-  ✓ Runs concrete Bash command to check env vars
-  ✓ Checks for MCP tools (mcp__*Clay*, mcp__*apollo*, etc.)
-  ✓ Checks environment variables ($APOLLO_API_KEY, $HUNTER_API_KEY,
-    $INSTANTLY_API_KEY) — existence only, NEVER displays values
+  ✓ Runs silent detection (Bash for env vars, MCP tool check)
+  ✓ NEVER displays or logs API key values
   ✓ Notes tools user mentioned in stack answer
-  ✓ Shows TOOLS DETECTED output block (connected / mentioned / none)
+  ✓ Asks about email enrichment conversationally if none detected
+  ✓ Does NOT recommend specific software unprompted
+  ✓ If user asks "what tool?", researches and gives honest answer
+  ✓ Handles "I don't have one" gracefully (pattern-guess + LinkedIn)
+  ✓ Shows TOOLS output block (connected / mentioned / no enrichment)
   ✓ Saves to Connected Tools section in icp.md
   ✓ Does NOT gate anything on tool connections
-  ✓ Suggests connecting mentioned-but-not-connected tools
-  ✓ Foundation Built output includes "Tools: N connected | N mentioned"
+  ✓ Foundation Built includes "Email enrichment: {tool or pattern-guess}"
+```
+
+### 2.2b No-outbound fallback
+
+```
+  ✓ If user has no cold emails and no deals, skill proceeds gracefully
+  ✓ Voice.md built from website copy and LinkedIn instead
+  ✓ Voice.md includes note "Built from website copy — provide example anytime"
+  ✓ Signals built from market research (theoretical) instead of won deals
 ```
 
 ### 2.3 Files Created
@@ -163,12 +212,16 @@ company.md sections:
 icp.md sections:
   ✓ What We Sell, Target Buyer, Buyer's Situation,
     Scoring Criteria, Pain Indicators
-  ✓ Stack (CRM, sequencer, LinkedIn, email finder)
+  ✓ Stack (CRM, email sending tool, LinkedIn, email finder)
   ✓ Connected Tools (tool name, status, what it enables)
   ✓ Do Not Contact (existing customers, past contacts)
   ✓ Won Deal Patterns (from Q2 deal examples):
     - Per deal: Buyer, Trigger, Closer, Signal
     - Patterns section (what deals have in common)
+  ✓ Lost Deal Anti-Signals (from Q2 lost deal examples):
+    - Per loss: Buyer, Why didn't buy, Anti-signal
+    - Anti-Fit Patterns section (what losses have in common)
+    - Section empty if user skipped lost deals (not an error)
 
 voice.md sections:
   ✓ Name (from sign-off)
@@ -240,6 +293,7 @@ All categories + proven tier:
   ✓ Proxy (conferences, evaluating related tools)
   ✓ Buyer's Customer Signals (what's happening to THEIR customers)
   ✓ Social Signals (Reddit, X/Twitter, LinkedIn)
+  ✓ Anti-Signals (disqualification patterns — shown in presentation)
 
   ✓ Explicit instruction: "Go deeper than 'company is hiring'"
   ✓ Behavioral + negative prioritized over transactional
@@ -249,6 +303,26 @@ Won deal integration:
   ✓ Extracts signals from real deals
   ✓ Labels proven vs theoretical signals
   ✓ Proven signals go to highest tier
+
+Lost deal integration:
+  ✓ Checks icp.md for Lost Deal Anti-Signals section
+  ✓ Extracts anti-signals from lost deals
+  ✓ Supplements with research-based anti-signals
+  ✓ Anti-signals saved to signals.md for /prospect to use
+  ✓ Competitor list built and saved to signals.md
+
+Signal reliability hierarchy:
+  ✓ Explicit ranking: job listings > proven > behavioral >
+    negative > compliance > tech stack > website > transactional
+  ✓ Saved to signals.md for /prospect scoring
+  ✓ Website signals flagged as unreliable for back-office tools
+
+Signal interpretation rules:
+  ✓ Seller vs buyer distinction documented
+  ✓ Source context matters (product page vs careers vs blog)
+  ✓ Tech stack positive vs inverse correlation
+  ✓ n=1 signal flagging requirement
+  ✓ CRM confirmation bias warning (catalyst notes, MEDDPICC, etc.)
 ```
 
 ### 4.2 Social Signals
@@ -265,10 +339,14 @@ Won deal integration:
 
 ```
   ✓ Presentation: Proven / High-Intent / Moderate / Customer / Social
+    + Anti-Signals + Signal Reliability Hierarchy
   ✓ Each signal: type, real example, why it matters, working query
+  ✓ Anti-signals shown with ✗ prefix and disqualification reason
+  ✓ Signal reliability hierarchy shown (1-8 ranking)
   ✓ Validates findability via WebSearch
   ✓ APPROVAL GATE
-  ✓ Saves signals.md with company + social search queries
+  ✓ Saves signals.md with: company + social search queries,
+    anti-signals section, competitor list, reliability hierarchy
   ✓ Auto-continues to /prospect after approval
   ✓ Single-company mode when user names a company
 ```
@@ -297,14 +375,28 @@ Channel ordering (NEW v4.2 — hard rule):
   ✓ Thin Channel 1/2 results must be noted, not hidden
 ```
 
-### 5.2 Filtering
+### 5.2 Filtering + Anti-Signal Disqualification
 
 ```
   ✓ Checks Do Not Contact list from icp.md
   ✓ Within-run dedup across channels (merge same company)
   ✓ Cross-run dedup against prospects.md
-  ✓ Excludes user's company + competitors
+  ✓ Excludes user's company + competitors from signals.md
   ✓ Checks disqualifier list from icp.md
+
+Anti-signal checks (NEW):
+  ✓ Loads anti-signals from signals.md
+  ✓ Checks every company against anti-signal list
+  ✓ 2+ anti-signal matches = auto-drop (moved to Dropped)
+  ✓ 1 anti-signal match = -3 penalty + flag in output
+  ✓ Competitor list from signals.md auto-excluded
+
+Competitor vs buyer interpretation (NEW):
+  ✓ Website signals checked: does company SELL or NEED the product?
+  ✓ Product/features page = seller signal (competitor, not buyer)
+  ✓ Careers/jobs page = buyer signal (high intent)
+  ✓ Failed interpretation = -4 penalty or drop
+  ✓ Flagged section in output for companies with single anti-signal
 ```
 
 ### 5.3 Scoring
@@ -314,10 +406,18 @@ Channel ordering (NEW v4.2 — hard rule):
   ✓ Behavioral signals: +4 (buyer posted about problem, asked for recs,
     churned off competitor, asking in community)
   ✓ Standard signals: high-30d +3, high-90d +2, moderate +1
-  ✓ Bonuses: multiple signals +1, social-sourced +2, customer signal +1
+  ✓ Bonuses: multiple signals +1, social-sourced +2, customer signal +1,
+    job listing signal +1
   ✓ Combined max: ~18 with multiple behavioral signals
   ✓ Thresholds: Top 10+, Worth a Look 6-9, Dropped below 6
   ✓ Behavioral scores highest because buyer is actively thinking about problem
+
+Anti-signal penalties (NEW):
+  ✓ Single anti-signal match: -3 (flagged in output)
+  ✓ Two+ anti-signal matches: auto-drop
+  ✓ Competitor list match: auto-drop
+  ✓ Failed seller-vs-buyer interpretation: -4
+  ✓ Signal reliability weighting documented (job listings > website)
 ```
 
 ### 5.4 Contact + Email Enrichment
@@ -327,38 +427,32 @@ Channel ordering (NEW v4.2 — hard rule):
   ✓ Title-case names, drop 1-char or initials
   ✓ LinkedIn URL captured
 
-Enrichment tiers (reads Connected Tools from icp.md):
-  ✓ Tier 1: Clay MCP → find-and-enrich-contacts-at-company
-    (contacts sync, emails async — must handle polling)
-  ✓ Tier 2: Apollo/Hunter API → email enrichment after WebSearch
-    API calls use environment variables, NEVER hardcoded
-  ✓ Tier 3: WebSearch only → marks emails "needs enrichment"
-  ✓ Falls back gracefully (Tier 1 → 2 → 3 per company)
-  ✓ Suggests connecting tools if Tier 3 for many contacts
-  ✓ Email column in prospects.md (email or "needs enrichment")
-  ✓ Email source column (Clay, Apollo, Hunter, public, pending)
+Tool-agnostic enrichment:
+  ✓ Uses whatever enrichment tools are connected (no preference)
+  ✓ Does NOT hardcode tool preferences or tiers
+  ✓ API calls use environment variables, NEVER hardcoded
+  ✓ Falls back gracefully per company if a tool fails
 
-Clay MCP signature (NEW v4.2 — verified against live tool):
-  ✓ Uses `companyIdentifier` (domain), NOT `company_name`
-  ✓ Uses `contactFilters.job_title_keywords` (array), NOT `title_filter`
-  ✓ Uses `dataPoints.contactDataPoints` to request email
-  ✓ Does NOT use `limit` (no such parameter)
-  ✓ Example in SKILL.md uses correct schema — grep should NOT find
-    `company_name:`, `title_filter:`, or `- limit:` in Tier 1 block
+Pattern-guess fallback (when no enrichment tools):
+  ✓ Checks for publicly available emails first
+  ✓ Detects company email pattern from known employee emails
+  ✓ Applies pattern to contact name (first.last@domain etc.)
+  ✓ Marks pattern-guess emails as "pattern-guess — verify before sending"
+  ✓ If no pattern detectable, marks as "LinkedIn only"
+  ✓ NEVER leaves a prospect in a dead end — always has a next step
 
-Clay async handling (NEW v4.2):
-  ✓ Skill states enrichments return state: in-progress
-  ✓ Instructions to capture taskId
-  ✓ prospects.md email column accepts "pending (clay:{taskId})"
-  ✓ /push or a follow-up step retrieves completed emails
-  ✓ Non-blocking: approval gates don't wait for email enrichment
-  ✓ Credits check via get-credits-available before first call
+Email status in prospects.md:
+  ✓ Verified email (from tool or public source)
+  ✓ Pattern-guess email (with verification note)
+  ✓ "LinkedIn only" (connection request instead)
+  ✓ Email source column tracks where email came from
 
-Fallback tool detection (v4.1):
+Fallback tool detection:
   ✓ If Connected Tools empty/missing in icp.md, /prospect detects
     tools independently (MCP check + env var check)
-  ✓ Every prospect has email OR explicit "needs enrichment" tag
-  ✓ Loaded context display shows enrichment tier being used
+  ✓ Mid-session tool changes handled (re-detect and switch)
+  ✓ ICP changes mid-flow handled (update and re-search)
+  ✓ Loaded context display shows enrichment method being used
 ```
 
 ### 5.5 Approval + Flow
@@ -422,9 +516,13 @@ Fallback tool detection (v4.1):
     buyer-world, mutual context
   ✓ 3+ non-obvious signals
   ✓ No pitch, no "I build...", no em dashes
+  ✓ Never names a social platform as signal source (no "r/subreddit",
+    no "on Twitter") — reference the TOPIC, not WHERE discussed
   ✓ Rotation across batch
   ✓ NOT a compressed version of the email
-  ✓ When both channels: different conversations
+  ✓ When both channels: completely different signals (not just
+    different framing of same signal)
+  ✓ Handles "LinkedIn only" prospects (no email available)
 ```
 
 ### 6.6 Variation Plan (NEW — v4.1)
@@ -432,12 +530,10 @@ Fallback tool detection (v4.1):
 ```
   ✓ Variation plan table created BEFORE writing any email
   ✓ Plan assigns: opener, bridge, CTA, client reference per prospect
-  ✓ No opener type used more than 3x
-  ✓ No bridge angle used more than 3x
-  ✓ No CTA used more than 3x
-  ✓ No client reference/case study used more than 3x
-  ✓ At least 4 different bridge angles in batch of 8+
+  ✓ Batches of 5+: no type used more than 3x, 4+ bridge angles at 8+
+  ✓ Batches under 5: each prospect gets different angles (relaxed caps)
   ✓ No two adjacent emails share same opener+bridge combo
+  ✓ No client reference/case study used more than 3x
 ```
 
 ### 6.7 Output Format (v4.1)
@@ -545,7 +641,7 @@ Shows LEARNINGS APPLIED summary before writing:
   ✓ Adjustments being made
 ```
 
-### 6.10 Presentation + Flow
+### 6.12 Presentation + Flow
 
 ```
   ✓ Email-only format with signal + opener + bridge metadata
@@ -591,14 +687,15 @@ LinkedIn formats:
   ✓ Exports to ./gtm/export/
 ```
 
-### 7.3 Missing Email Handling
+### 7.3 Email Status Handling
 
 ```
-  ✓ Identifies "needs enrichment" prospects
-  ✓ Suggests Clay MCP (richest data, one-step)
-  ✓ Suggests Apollo/Hunter API keys
-  ✓ Falls back to manual options
-  ✓ Does NOT guess email addresses
+  ✓ Shows email status breakdown (verified / pattern-guess / LinkedIn only)
+  ✓ Pattern-guess emails flagged "verify before sending"
+  ✓ Offers to verify with connected tool (generic, no hardcoded preference)
+  ✓ If no enrichment tools, suggests user connect one (no specific rec)
+  ✓ Does NOT hardcode recommendations for specific tools
+  ✓ LinkedIn-only contacts get connection requests (not a dead end)
 ```
 
 ### 7.4 Deliverability
@@ -666,6 +763,13 @@ Won deals:
   closed on 5-deal comparison (8% vs 35% variance)
 - Visio: Dir Credit Risk, triggered by board risk mandate,
   closed on 2-week API pilot
+
+Lost deals:
+- PropTech startup: Head of Product, didn't buy because they
+  built their own model. Anti-signal: company had "rental analytics"
+  on their product page (competitor, not buyer)
+- Consumer fintech: VP Ops, no B2B lending vertical.
+  Anti-signal: consumer mortgage company, not DSCR lender
 
 Target: Wade Susini, Chief Lender, Dominion Financial
 Signals:
@@ -765,12 +869,15 @@ Grade how Batch 2 adapts.
   /signal-scout                {pass}/{total}
   ├── Signal categories        {✓/✗}
   ├── Social signals           {✓/✗}
-  └── Won deal integration     {✓/✗}
+  ├── Won deal integration     {✓/✗}
+  ├── Lost deal anti-signals   {✓/✗}
+  ├── Signal reliability       {✓/✗}
+  └── Interpretation rules     {✓/✗}
 
   /prospect                    {pass}/{total}
   ├── Search channels          {✓/✗}
-  ├── Filtering + dedup        {✓/✗}
-  ├── Scoring                  {✓/✗}
+  ├── Filtering + anti-signals {✓/✗}
+  ├── Scoring + penalties      {✓/✗}
   ├── Email enrichment         {✓/✗}
   └── Approval + flow          {✓/✗}
 

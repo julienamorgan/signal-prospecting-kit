@@ -56,8 +56,11 @@ Check the filesystem for the ./gtm/ directory.
   GTM Foundation
   ├── Company Profile     ✗ not found
   ├── ICP Profile         ✗ not found
+  │   (your ideal customer)
   ├── Voice Profile       ✗ not found
+  │   (how your outreach sounds)
   ├── Signal Types        ✗ not found
+  │   (events that suggest someone needs your product)
   ├── Prospects           ✗ not found
   └── Learnings           ✗ not found
 
@@ -77,7 +80,7 @@ conversational. Two questions, but each covers multiple things:
   ① Tell me about your business and outbound setup:
      - Company domain
      - Who you sell to (title, company size, industry)
-     - Your stack: CRM, email sequencer, LinkedIn
+     - Your stack: CRM, email sending tool, LinkedIn
        tools, email finder (or "none" for any)
      - Existing customers or companies you've already
        contacted (so I don't surface them as prospects)
@@ -89,6 +92,9 @@ conversational. Two questions, but each covers multiple things:
      - 1-2 examples of deals you've won — who was
        the buyer, what triggered them to buy, what
        closed them
+     - 1-2 examples of deals you've LOST — who was
+       the buyer, why they didn't buy, what the
+       company looked like (optional but valuable)
 
      Don't overthink it — rough notes are fine.
 ```
@@ -96,7 +102,17 @@ conversational. Two questions, but each covers multiple things:
 Wait for all answers. Do not ask follow-ups. If they skip the stack
 details, that's fine — note what's missing, fill it in later when
 they mention tools. If they only provide one email or one deal,
-that's enough to work with.
+that's enough to work with. Lost deals are optional — if they skip
+them, /signal-scout will work from theoretical anti-signals instead.
+
+**If they haven't done outbound before:** If the user says they
+have no cold emails, no deal examples, or "I haven't done outbound
+yet" — that's fine. Say: "No worries — I'll build your voice from
+your website copy and LinkedIn profile instead, and we'll use
+market research for signals." Then in Step 5, build voice.md from
+their website's tone and any LinkedIn posts you can find via
+WebSearch. Add a note to voice.md: "Built from website copy —
+provide a cold email example anytime and I'll refine this."
 
 **Why deals-that-won matters:** The examples of closed deals reveal
 the REAL buying signals — what was happening at the company when
@@ -104,58 +120,90 @@ they decided to buy. These become the highest-confidence signal
 types in /signal-scout. A signal pattern from actual closed deals
 beats any theoretical signal list.
 
-### Step 3: Detect Tool Connections — CRITICAL, DO NOT SKIP
+**Why deals-that-lost matters:** Lost deals reveal anti-signals —
+patterns that look like prospects but never close. From actual ICP
+analyses: 80% of lost companies were disqualifiable using just 2-3
+anti-fit signals. Identifying non-buyers early prevents wasted
+outreach. A single anti-signal (e.g., "they sell the same thing
+we sell" or "consumer business, not B2B") can disqualify a
+prospect before you spend time researching them.
 
-**This step is REQUIRED before moving to Step 4.** You must run the
-detection commands below and show the TOOLS DETECTED output block.
-Do not skip this step even if the user didn't mention any tools.
+### Step 3: Understand Their Tools — CRITICAL, DO NOT SKIP
+
+**This step is REQUIRED before moving to Step 4.** You must check
+what tools are available and ask about email enrichment. Do not skip
+this step even if the user didn't mention any tools.
 
 The system works with zero tools connected (WebSearch only). But
-connected tools make email finding dramatically better. This step
-detects what's available so /prospect and /push can use them.
+connected tools make email finding dramatically better.
 
-**Action 1 — Check for MCP tools:**
-Use ToolSearch or check available tools for these prefixes:
-- Tools starting with `mcp__` and containing `Clay` → Clay connected
-- Tools starting with `mcp__` and containing `apollo` → Apollo connected
-- Tools starting with `mcp__` and containing `hubspot` → HubSpot connected
-- Tools starting with `mcp__` and containing `instantly` → Instantly connected
+**Action 1 — Silent detection (do NOT show raw output to user):**
 
-If Clay MCP tools are found, the system can find contacts WITH
-emails in one call — this is the best enrichment path.
+Check for MCP tools: look for available tools starting with `mcp__`
+(any enrichment, CRM, or outreach tool). Note what's connected.
 
-**Action 2 — Check for API keys:**
-Run this Bash command (one command, checks all keys):
+Check for API keys via Bash:
 ```bash
-echo "APOLLO=$([ -n \"$APOLLO_API_KEY\" ] && echo 'set' || echo 'not set')" && \
-echo "HUNTER=$([ -n \"$HUNTER_API_KEY\" ] && echo 'set' || echo 'not set')" && \
-echo "INSTANTLY=$([ -n \"$INSTANTLY_API_KEY\" ] && echo 'set' || echo 'not set')"
+env | grep -i '_API_KEY\|_TOKEN' | sed 's/=.*/=set/' 2>/dev/null || echo "no env keys found"
 ```
 
 **NEVER display or log API key values.** Only check if they exist.
 
-**Action 3 — Check what user mentioned in their stack answer:**
-If they mentioned tools like Clay, Apollo, Hunter, Instantly, HubSpot,
-Outreach, Salesloft, HeyReach, Dripify — note them even if no API
-key or MCP connection is detected.
+**Action 2 — Check what user mentioned in their stack answer:**
+Note any tools they mentioned (CRM, email sending, LinkedIn tools,
+email finders, enrichment platforms — anything).
 
-**Action 4 — Show results. You MUST display this block:**
+**Action 3 — Ask about email enrichment (conversational, not prescriptive):**
+
+Based on what you found, show one of these:
 
 ```
-  TOOLS DETECTED
+{If enrichment tools detected (MCP or API keys):}
+
+  TOOLS
   ─────────────────────────────────────────────
-  {For each connected tool:}
-  ✓ {Tool}: connected ({what it enables})
+  ✓ {Tool}: connected — I'll use this to find
+    contact emails automatically.
+  {For each additional tool detected:}
+  ✓ {Tool}: connected
 
-  {For each mentioned-but-not-connected tool:}
-  ○ {Tool}: mentioned but not connected
-    → {one line on what connecting it would enable}
+  {For any tools mentioned but not connected:}
+  ○ {Tool}: you mentioned this but it's not
+    connected yet. Want help setting it up?
 
-  {If nothing detected:}
-  No tools connected. Using web research for
-  everything — works fine, just slower on emails.
-  You can connect tools anytime.
+{If NO enrichment tools detected:}
+
+  TOOLS
+  ─────────────────────────────────────────────
+  I didn't detect any email enrichment tools.
+
+  Do you have access to any tool that finds
+  business email addresses? For example, an
+  enrichment platform, a sales intelligence
+  tool, or an email finder with an API.
+
+  If not, no worries — I'll try to find emails
+  from public sources and pattern-guess the rest.
+  For contacts I can't find emails for, I'll
+  set up LinkedIn connection requests instead.
 ```
+
+**How to handle their response:**
+- If they name a tool → help them connect it (find the right env
+  var name, MCP server, or API setup). Then continue.
+- If they say "no" or "I don't have one" → note it and move on.
+  Default path: pattern-guess emails + LinkedIn outreach.
+- If they ask "what should I use?" or "what's the best tool?" →
+  Research it. Use WebSearch to find current options, compare
+  pricing and features, and give them an honest recommendation
+  based on their needs. Then return to this step.
+- If they go off on a tangent → answer their question, then bring
+  them back: "Good question. [answer]. Back to setup — [resume
+  where you left off]."
+
+**Do NOT hardcode preferences for any specific tool.** The user
+may have access to tools you've never heard of. If they name
+something, try to detect it (MCP tool list, env vars) and use it.
 
 Save all findings to the `## Connected Tools` section in icp.md
 (see Step 5 below). The /prospect skill reads this section to
@@ -226,27 +274,28 @@ need this product? Be specific.}
 
 ## Stack
 - CRM: {their answer}
-- Sequencer: {their answer}
+- Email sending tool: {their answer}
 - LinkedIn: {their answer}
 - Email finder: {their answer}
 - Other: {anything else they mentioned}
 
 ## Connected Tools
-{Tools detected during setup. Status: connected, mentioned, or not available.}
+{Tools detected and confirmed during setup.}
 
-Example:
-- Clay: connected (MCP) — enrichment, contacts, company data
-- Apollo: API key set ($APOLLO_API_KEY) — email enrichment
-- Instantly: mentioned, not connected — export only (CSV)
-- HubSpot: not available
+{For each connected tool:}
+- {Tool name}: connected ({how — MCP, API key, etc.}) — {what it does}
+
+{For mentioned-but-not-connected tools:}
+- {Tool name}: mentioned, not connected — needs setup
+
+{If no enrichment tools:}
+- Email enrichment: none — using pattern-guess + LinkedIn fallback
+- Outreach channel: LinkedIn connection requests (primary),
+  email where address found via public sources
 
 Connected tools are used automatically by /prospect and /push.
-Mentioned-but-not-connected tools get CSV/file export instead.
-
-To connect a tool later, either:
-- Set the API key: export APOLLO_API_KEY=your_key_here
-- Install the MCP server (for Clay, HubSpot, etc.)
-Then run /start again — I'll detect it.
+To connect a tool later, tell me what tool you have and I'll
+help you set it up. Then run /start again to re-detect.
 
 ## Do Not Contact
 {list of existing customers, companies already contacted, or
@@ -317,9 +366,44 @@ After creating the base icp.md, add this section from their deal examples:
 high-confidence signals in /signal-scout.}
 ```
 
+**icp.md addition — Lost Deal Anti-Signals:**
+
+If the user provided lost deal examples, add this section after
+Won Deal Patterns:
+
+```markdown
+## Lost Deal Anti-Signals
+{from their examples of deals that didn't close}
+
+### Loss 1: {company name}
+- Buyer: {title, company}
+- Why they didn't buy: {reason — wrong fit, no budget, competitor, etc.}
+- What the company looked like: {industry, size, characteristics}
+- Anti-signal: {what was observable BEFORE the deal that could have
+  predicted the loss}
+
+### Loss 2: {company name}
+- Buyer: {title, company}
+- Why they didn't buy: {reason}
+- Anti-signal: {observable pre-deal indicator}
+
+### Anti-Fit Patterns
+{what do the lost deals have in common? These patterns become
+disqualifiers in /signal-scout and /prospect.}
+
+Common anti-fit patterns to watch for:
+- Company sells the same thing you sell (competitor, not buyer)
+- Consumer business model (B2C, not B2B)
+- No hiring activity in 12+ months (no budget, not growing)
+- Already using a competitor's product (mentioned on site or jobs)
+- Wrong department structure (no relevant buyer title exists)
+```
+
 If the user only provides one deal, that's fine. If they skip deals
 entirely, leave the section empty — /signal-scout will work from
-theoretical signals instead.
+theoretical signals instead. If they skip lost deals, leave the
+Lost Deal Anti-Signals section empty — /signal-scout will generate
+theoretical anti-signals from market research.
 
 ### Step 6: Show What You Built and Route
 
@@ -336,8 +420,9 @@ theoretical signals instead.
   ./gtm/icp.md         ✓ ICP: {buyer summary}
   ./gtm/voice.md       ✓ Voice: {tone}, signed as {name}
 
-  Stack: {CRM}, {sequencer}, {LinkedIn tool}
-  Tools: {N connected} | {N mentioned but not connected}
+  Stack: {CRM}, {email tool}, {LinkedIn tool}
+  Email enrichment: {tool name or "pattern-guess + LinkedIn"}
+  Tools: {N connected} | {N mentioned}
 
   ──────────────────────────────────────────────
 
@@ -434,13 +519,57 @@ Then auto-continue to /prospect (which dedupes against existing).
 they asked for.
 
 **Tool re-detection:** Re-run tool detection (Step 3 from first-run)
-silently. If new tools are available since last run, mention it:
+silently. Compare results against the Connected Tools section in
+icp.md. If new tools are available since last run:
+1. **Update icp.md Connected Tools section immediately.** Downstream
+   skills (/prospect, /push) read this section — if you don't persist
+   the change, they won't see the new tool.
+2. Mention it to the user:
 ```
   New: {tool} detected since last session.
   I'll use it for {what it enables}.
 ```
 
 Show loaded context when routing. Never present as menu.
+
+---
+
+## Orchestrator Pattern — Staying on Track
+
+The user may ask questions, go on tangents, or want to explore
+something mid-flow. This is expected and good. Handle it like this:
+
+**If the user asks a question about a concept** (e.g., "what's a
+signal?", "what does ICP mean?", "how does email enrichment work?"):
+Answer clearly in plain language. Then resume where you left off:
+"Good question. [answer]. Back to setup — [next thing you need]."
+
+**If the user asks for a recommendation** (e.g., "what's the best
+email finder?", "should I use Apollo or Hunter?"):
+Research it using WebSearch. Give an honest, current answer based
+on their situation (company size, budget, existing stack). Do NOT
+hardcode preferences — find what's actually best for them right now.
+Then return to the flow: "Based on that, [recommendation]. Want to
+set it up now, or continue without it?"
+
+**If the user wants to skip ahead** (e.g., types /prospect before
+finishing /start):
+Let them. Every skill can run with partial context — it will ask
+for what it needs. But mention what they're missing: "You can run
+that now — I'll ask you a couple things I need to get started.
+You'll get better results if we finish setup first (takes 2 more
+minutes). Your call."
+
+**If the user goes completely off-topic** (e.g., asks about something
+unrelated to outbound):
+Answer their question. Then gently resume: "Happy to help with that.
+When you're ready to continue with outbound setup, just say 'continue'
+and I'll pick up where we left off."
+
+**Key principle:** The user is always in control. The flow is a guide,
+not a cage. Every step should feel like a conversation, not a form.
+If they want to explore, let them explore. The flow is always there
+to come back to.
 
 ---
 
@@ -451,3 +580,5 @@ Show loaded context when routing. Never present as menu.
 3. Never rebuild existing files without asking first.
 4. Never skip the project scan on return visits.
 5. Show one-line summaries of loaded context, not full dumps.
+6. Never hardcode preferences for specific tools or software.
+7. Never block progress because a tool isn't connected.

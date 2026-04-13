@@ -147,8 +147,11 @@ Based on competitive research, propose updates to icp.md:
 
 Wait for user confirmation before updating icp.md. They may:
 - Confirm as-is → update and route to /signal-scout
-- Correct something → adjust and re-present
+- Correct something → re-research the corrected area via WebSearch,
+  then re-present the full landscape with corrections highlighted.
+  Don't just delete bad data — replace with better research.
 - Add context you missed → incorporate and update
+- Ask a question → answer it, then re-present for approval
 
 Once approved, update `./gtm/icp.md` with:
 - Competitive positioning section
@@ -167,6 +170,22 @@ Once approved, update `./gtm/icp.md` with:
 **After the user approves and ICP is updated, automatically proceed
 to run the /signal-scout process.** Do not wait for the user to type
 "/signal-scout". Keep the momentum going — the user already said yes.
+
+---
+
+## Handling Questions and Tangents
+
+If the user asks a question mid-flow ("what's a disqualifier?",
+"why did you include X as a competitor?", "should I target SMB
+or enterprise?"), answer clearly, then resume: "Good question.
+[answer]. Here's the updated landscape — does this look right?"
+
+If they want to explore something ("can you research company Y?",
+"what about the European market?"), do the research and fold it
+into the competitive analysis. Then re-present for approval.
+
+The flow is a guide, not a cage. Answer questions, explore tangents,
+and always bring it back to the approval gate.
 
 ---
 

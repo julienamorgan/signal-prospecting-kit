@@ -32,53 +32,85 @@ scored, researched prospect list ready for outreach.
 
 Read:
 - `./gtm/icp.md` — who to target, disqualifiers, buyer situation,
-  do-not-contact list, API keys available
-- `./gtm/signals.md` — what buying signals to look for (with search queries)
+  do-not-contact list, API keys available, lost deal anti-signals
+- `./gtm/signals.md` — what buying signals to look for (with search queries),
+  anti-signals to disqualify against, signal reliability hierarchy,
+  competitor list
 - `./gtm/company.md` — to avoid targeting competitors or the user's own company
 - `./gtm/prospects.md` — to avoid duplicates if previous runs exist
 
-If signals.md doesn't exist, ask what signals matter or suggest running
-/signal-scout first. Don't guess at signals.
+If signals.md doesn't exist, you can still proceed:
+1. Ask: "What signals indicate someone needs your product right now?"
+2. If they give you signals, use those to search.
+3. If they're unsure, generate 3-5 obvious signal types from icp.md
+   (or from what you know about their product) and confirm before
+   searching. Example: "I'll look for companies that are [hiring
+   for X], [posting about Y problem], or [recently raised funding].
+   Sound right?"
+4. Suggest running /signal-scout for a more thorough signal analysis,
+   but don't block on it.
+
+**Load Anti-Signals from signals.md.** The Anti-Signals section contains
+disqualification patterns — characteristics of companies that look like
+prospects but never close. Check EVERY company found against this list
+before adding to results. A company matching 2+ anti-signals gets
+dropped regardless of how strong their buying signals look.
+
+**Load Signal Reliability Hierarchy.** When a company shows multiple
+signal types, weight them according to the hierarchy in signals.md.
+Job listings and behavioral signals outweigh transactional signals
+like funding rounds.
+
+**Load Competitor List from signals.md.** Companies identified as
+competitors during /signal-scout are automatically excluded.
 
 **Load the Do Not Contact list from icp.md.** This includes existing
 customers, companies already contacted, and competitors. Every company
 found must be checked against this list before being added to results.
 
-**Load Connected Tools from icp.md.** Check what's available:
-- Clay (MCP): Can enrich companies, find contacts with emails, run
-  subroutines. If connected, use it as primary enrichment in Step 5.
-- Apollo (API): Email enrichment. Secondary to Clay if both available.
-- Hunter (API): Email finding by name + domain.
-- Other tools: Note for export in /push.
+**Load Connected Tools from icp.md.** Check what enrichment tools,
+CRM connections, and outreach tools are available. Use whatever
+the user has — do not prefer one tool over another.
 
 **FALLBACK — If Connected Tools section is empty or missing in icp.md,
 detect tools yourself before proceeding.** This covers cases where
 /start was skipped or tool detection didn't run:
-1. Check for MCP tools: look for available tools starting with `mcp__`
-   containing `Clay`, `apollo`, `hubspot`, or `instantly`
-2. Check env vars with Bash: `[ -n "$APOLLO_API_KEY" ] && echo set`
-   (same for HUNTER_API_KEY, INSTANTLY_API_KEY)
+1. Check for MCP tools: look for any available tools starting with
+   `mcp__` that handle contacts, enrichment, or company data
+2. Check env vars with Bash: `env | grep -i '_API_KEY\|_TOKEN' |
+   sed 's/=.*/=set/' 2>/dev/null`
 3. Use whatever you find. Update icp.md Connected Tools section.
 
-The tool tier determines how Step 5 works:
-- **Tier 1 (Clay MCP connected):** Use Clay to find and enrich contacts
-  with emails in one step. Most reliable.
-- **Tier 2 (API keys available):** Use Apollo/Hunter APIs for email
-  enrichment after finding contacts via WebSearch.
-- **Tier 3 (no tools):** WebSearch for contacts, mark emails as
-  "needs enrichment." Still works, just needs manual email finding.
+**Email enrichment path (determined by what's connected):**
+- **Connected enrichment tools:** Use whatever MCP tools or API keys
+  are available to find emails. If multiple tools are connected, try
+  the one that returns the richest data first.
+- **No enrichment tools:** Find contacts via WebSearch, then:
+  1. Check for publicly available emails (company website, LinkedIn)
+  2. Detect the company's email pattern from any known employee emails
+     (first.last@domain, flast@domain, firstl@domain)
+  3. Pattern-guess the email using the detected format
+  4. If no pattern detected, mark as "LinkedIn only" — outreach will
+     default to LinkedIn connection request for this contact
 
-**You MUST attempt email enrichment in Step 5.** Do not skip it.
-Every prospect should have either an email address or an explicit
-"needs enrichment" tag with a suggestion to connect Clay or Apollo.
+**Every prospect should end up with one of:**
+- A verified email (from enrichment tool or public source)
+- A pattern-guessed email (marked as "pattern-guess — verify before sending")
+- "LinkedIn only" (no email found — LinkedIn connection request instead)
+
+**Never leave a prospect in a dead end.** If you can't find an email,
+the prospect still gets LinkedIn outreach. No "needs enrichment"
+without a clear next step.
 
 Show what you loaded:
 
 ```
   Loaded: ICP ({buyer type}), {N} signal types,
+  {N} anti-signals active, {N} competitors excluded,
   {N} existing prospects (dedup check active),
   {N} companies on do-not-contact list.
-  Email enrichment: {Tier 1: Clay MCP | Tier 2: Apollo/Hunter API | Tier 3: WebSearch only}
+  Email enrichment: {tool name(s) or "web research + pattern-guess"}
+  Fallback channel: LinkedIn connection requests
   Searching for companies showing buying signals.
 ```
 
@@ -197,17 +229,27 @@ recommendations." The specificity is what makes the outreach work.
 **For each company found (from any channel):**
 1. Verify they match ICP (industry, size, buyer title exists)
 2. Check they're not on the disqualifier list from icp.md
-3. **Dedup within this run** — if the same company appeared in Reddit
-
-**For each company found (from any channel):**
-1. Verify they match ICP (industry, size, buyer title exists)
-2. Check they're not on the disqualifier list from icp.md
-3. **Dedup within this run** — if the same company appeared in Reddit
+3. **Anti-signal check** — Run through the anti-signal list from
+   signals.md. A company matching 2+ anti-signals gets dropped
+   immediately, even if their buying signals look strong. Log the
+   reason in the Dropped section. Single anti-signal = flag but
+   don't auto-drop (note it in the presentation).
+4. **Competitor vs buyer check** — If you found the company because
+   they mention your product category on their website, verify
+   they're a BUYER not a COMPETITOR. Check: does their website
+   describe this as something they SELL or something they NEED?
+   Product/features pages = seller signal. Careers/jobs pages =
+   buyer signal. This is the #1 false-positive source in
+   signal-based prospecting.
+5. **Dedup within this run** — if the same company appeared in Reddit
    AND news AND LinkedIn, merge into one entry. Note all signal sources.
    Multiple channels = stronger signal (bonus in scoring).
-4. Check they're not already in prospects.md (cross-run dedup)
-5. Check they're not the user's own company or a competitor
-6. Note which signals they're showing, when, and from which channel
+6. Check they're not already in prospects.md (cross-run dedup)
+7. Check they're not the user's own company or on the competitor list
+   from signals.md
+8. Note which signals they're showing, when, and from which channel.
+   **Tag each signal with its reliability tier** from signals.md
+   (job listing > behavioral > negative > tech stack > website > transactional)
 
 **Target: 15-25 unique companies per search run.** Quality over quantity.
 
@@ -249,11 +291,27 @@ Bonuses:
 - Multiple signals from different categories: +1
 - Social-sourced (Reddit/X/LinkedIn thread): +2
 - Buyer's customer signal detected: +1
+- Job listing signal (highest reliability): +1
+- Signal structurally matches a won-deal trigger pattern: +2
+  (e.g., if won deal triggered by "board risk mandate" and prospect
+  just announced portfolio risk review, score as proven-adjacent)
+
+**Anti-Signal Penalties (subtract from score):**
+- Single anti-signal match: -3 (flag in output)
+- Two+ anti-signal matches: auto-drop (moved to Dropped section)
+- Company appears on competitor list: auto-drop
+- Website signal is seller-not-buyer (failed interpretation check): -4
 
 **Behavioral signals score highest** because the person is actively
 thinking about the problem. "VP Sales posted about pipeline struggles"
 is worth more than "company raised Series B" because the first shows
 awareness, the second just shows budget.
+
+**Signal reliability weighting:** When scoring, weight signals by
+their reliability tier. A job-listing signal (+3 for high-intent in
+last 30 days) is more trustworthy than a website-content signal
+(same +3) because job listings indicate active budget. If a company's
+only signal is website content, note the reliability concern.
 
 A job posting alone (hiring SDRs, VP Sales) scores as a standard
 signal (+2 or +3). A job posting PLUS a behavioral signal (the new
@@ -311,10 +369,22 @@ signal bonuses stack.
 
   {lower-scored companies, same format}
 
-  DROPPED (disqualified or low-signal)
+  FLAGGED (single anti-signal — proceed with caution)
   ─────────────────────────────────────────────
 
-  {company}: {why dropped — competitor, no signals, etc.}
+  {Company Name} — {domain} — Score: {X} (includes -3 penalty)
+     Anti-signal: {which anti-signal matched}
+     Buying signal: {what positive signal they showed}
+     Risk: {why they might not close}
+
+  DROPPED (disqualified)
+  ─────────────────────────────────────────────
+
+  {company}: {why dropped}
+  {If anti-signal:} Anti-signals: {matched 2+ anti-signals}
+  {If competitor:} Competitor: {sells same product category}
+  {If interpretation fail:} Seller, not buyer: {website describes
+    them selling the product, not needing it}
 
   ──────────────────────────────────────────────
 
@@ -338,136 +408,67 @@ For each approved company, find the right contact AND their email.
 - Primary: {the decision-maker title from ICP}
 - Secondary: {one level up or adjacent title}
 
-**Use the best available tool tier (from Connected Tools in icp.md):**
-
 ---
 
-**TIER 1: Clay MCP connected (best)**
+**FINDING CONTACTS (same for all users):**
 
-Clay's real tool signature (verified against the live MCP — do NOT
-invent parameters):
-
-```
-mcp__claude_ai_Clay__find-and-enrich-contacts-at-company:
-  companyIdentifier: "{domain}"           # REQUIRED. Domain like "stripe.com"
-                                          # or LinkedIn URL. Company NAMES alone
-                                          # will fail — convert "Stripe" → "stripe.com"
-  contactFilters:
-    job_title_keywords: ["{title}"]       # array of strings; e.g.
-                                          # ["Head of Sustainability", "CSO"]
-    # optional additional filters:
-    # current_role_max_months_since_start_date: 12  (for new hires)
-    # locations: ["United States"]
-  dataPoints:
-    contactDataPoints:
-      - { type: "Email" }                 # request email enrichment
-```
-
-There is NO `company_name`, `title_filter`, or `limit` parameter. Use
-`companyIdentifier` (domain), `contactFilters.job_title_keywords` (array),
-and `dataPoints.contactDataPoints` to request the email.
-
-**Clay is ASYNC — plan for this.** The initial call returns contact
-metadata (name, title, LinkedIn URL, company data) synchronously, but
-enrichments like `Email` come back with `state: "in-progress", value: null`.
-Do not assume the email is in the first response.
-
-Handling async enrichments:
-1. Capture the `taskId` returned by the call. Write it to prospects.md
-   in the Email column as `pending (clay:{taskId})`.
-2. Continue the pipeline — do NOT block on emails for the approval
-   gates. The user approves the contact list first.
-3. In /push (or just before exporting), retrieve email results by
-   calling `mcp__claude_ai_Clay__get-existing-search` with the stored
-   taskId. This is the documented polling tool for contact enrichments.
-   Poll up to 3-5 times with a short wait between attempts if the
-   enrichment state is still `"in-progress"`. Example:
-
-   ```
-   mcp__claude_ai_Clay__get-existing-search:
-     taskId: "{stored taskId, e.g. mcp-task_abc123}"
-   ```
-
-   The response is the same shape as the original find-and-enrich call,
-   but with `enrichments[].state` now set to `"completed"` and
-   `enrichments[].value` populated with the real email address (or
-   `"None Found"` if Clay couldn't find it).
-4. If an email is still pending at export time, mark it "needs enrichment"
-   and suggest running /push again in a few minutes, or fall back to
-   Tier 2 (Apollo/Hunter) for that row.
-
-Multi-contact handling: if Clay returns several people matching the
-title filter, pick the highest-ranking person (e.g. CSO > Head of
-Sustainability > Sustainability Manager). Only one contact per company.
-
-You can also enrich company data separately if needed:
-```
-mcp__claude_ai_Clay__find-and-enrich-company:
-  companyIdentifier: "{domain}"
-  companyDataPoints:
-    - { type: "Recent News" }
-    - { type: "Headcount Growth" }
-```
-
-**Before any Clay call, verify credits** with
-`mcp__claude_ai_Clay__get-credits-available`. If
-`hasWorkspaceCredits: false`, fall back to Tier 2 or 3 immediately and
-tell the user.
-
-**NEVER hardcode or display API keys or credentials.**
-
-If Clay returns no results for a company (empty `contacts` array), fall
-back to Tier 2 or 3 for that specific company.
-
----
-
-**TIER 2: API keys available (Apollo, Hunter, etc.)**
-
-First find the contact name via WebSearch:
+Search for the right person at each company:
 - WebSearch: `"{company name}" "{target title}" site:linkedin.com`
 - WebSearch: `"{company name}" team OR leadership OR about`
 - Company website team/about page via WebFetch
 
-Then enrich email via API (using environment variables):
-```bash
-# Apollo
-curl -s "https://api.apollo.io/v1/people/match" \
-  -H "X-Api-Key: $APOLLO_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "...", "organization_name": "..."}'
+If an enrichment MCP tool is connected that can find contacts
+(check Connected Tools in icp.md), use it. Follow the tool's
+actual parameter schema — do not invent parameters. If the tool
+is async (returns a task ID), capture it and continue without
+blocking.
 
-# Hunter
-curl -s "https://api.hunter.io/v2/email-finder?domain={domain}&first_name={first}&last_name={last}&api_key=$HUNTER_API_KEY"
-```
+**One contact per company.** The highest-ranking person matching the
+buyer title. Don't stack multiple contacts at the same company.
 
+---
+
+**FINDING EMAILS (depends on what tools are connected):**
+
+**If enrichment tools are connected** (MCP or API keys):
+Use whatever tools are available. Follow their API conventions.
 **NEVER hardcode or display API keys.** Always use $ENV_VAR.
+If a tool returns no email for a company, fall through to the
+pattern-guess method below.
+
+**If no enrichment tools OR tools failed for this contact:**
+
+1. Check for publicly available email: company website contact page,
+   LinkedIn profile, press releases, conference speaker bios.
+
+2. **Pattern-guess the email:** Look for ANY known email at the
+   company domain (from website footer, press contacts, job postings,
+   other employees on LinkedIn). Detect the pattern:
+   - first.last@domain.com (most common)
+   - flast@domain.com
+   - firstl@domain.com
+   - first@domain.com
+
+   Apply the pattern to your contact's name. Mark as:
+   `{guessed email} (pattern-guess — verify before sending)`
+
+3. **If no pattern detectable:** Mark as "LinkedIn only" and ensure
+   the LinkedIn URL is captured. This contact gets a LinkedIn
+   connection request instead of a cold email. This is NOT a failure
+   — LinkedIn outreach often outperforms cold email for senior buyers.
 
 ---
 
-**TIER 3: No tools connected (WebSearch only)**
+**MID-SESSION TOOL CHANGES:** If the user mentions they just
+connected a new tool (e.g., "I just set up my API key for X"),
+re-detect tools immediately, update icp.md Connected Tools, and
+use the new tool for remaining prospects. Don't wait for the next
+/start run.
 
-Find contact via WebSearch:
-- WebSearch: `"{company name}" "{target title}" site:linkedin.com`
-- WebSearch: `"{company name}" team OR leadership OR about`
-- Company website team/about page via WebFetch
-
-For email: note the company's email domain pattern if detectable
-(first.last@, flast@). Mark email as "needs enrichment."
-
-Show this once at the end of the contact list:
-```
-  {N} contacts need email addresses. Options:
-
-  → Connect Clay (richest data, one-step):
-    Install the Clay MCP server, then run
-    /prospect again.
-
-  → Connect Apollo or Hunter (email finding):
-    export APOLLO_API_KEY=your_key_here
-    Then run /prospect again.
-
-  → Find manually in Apollo, Hunter, or ZoomInfo.
-```
+**ICP CHANGES:** If the user updates their ICP mid-flow (new
+titles, new industries, expanded buyer profile), update icp.md
+first, then re-run the search with the updated criteria.
+Acknowledge: "Updated ICP to include {change}. Re-searching."
 
 ---
 
@@ -476,8 +477,8 @@ Show this once at the end of the contact list:
 - Title
 - Company
 - LinkedIn URL if found
-- Email (from Clay, API, public source, or "needs enrichment")
-- Email source (Clay, Apollo, Hunter, public, or pending)
+- Email: {verified email}, {pattern-guess email}, or "LinkedIn only"
+- Email source: {tool name}, pattern-guess, public, or LinkedIn-only
 
 **One contact per company.** The highest-ranking person matching the
 buyer title. Don't stack multiple contacts at the same company.
@@ -493,23 +494,31 @@ buyer title. Don't stack multiple contacts at the same company.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   {Name} — {Title} — {Company}
-    Email: {email or "needs enrichment"}
+    Email: {email}
     Signal: {what's happening + date}
     LinkedIn: {URL if found}
 
   {Name} — {Title} — {Company}
-    Email: {email or "needs enrichment"}
+    Email: {pattern-guess email} (verify before sending)
     Signal: {what's happening + date}
-    LinkedIn: {URL if found}
+    LinkedIn: {URL}
+
+  {Name} — {Title} — {Company}
+    Email: LinkedIn only
+    Signal: {what's happening + date}
+    LinkedIn: {URL}
 
   ...
 
   ──────────────────────────────────────────────
 
   {N} prospects ready for outreach.
+  {N} with verified email → cold email + LinkedIn
+  {N} with pattern-guess email → verify, then email
+  {N} LinkedIn only → connection request
 
   Does this list look right? I'll start writing
-  personalized emails once you confirm.
+  personalized outreach once you confirm.
 ```
 
 ### ✋ APPROVAL GATE
@@ -532,9 +541,9 @@ Save to `./gtm/prospects.md`:
 
 ## Batch: {date}
 
-| Name | Title | Company | Domain | Email | Signal | Source | Score | LinkedIn | Status |
-|------|-------|---------|--------|-------|--------|--------|-------|----------|--------|
-| {name} | {title} | {company} | {domain} | {email} | {signal} | {channel} | {score} | {url} | ready |
+| Name | Title | Company | Domain | Email | Email Source | Signal | Channel | Score | LinkedIn | Status |
+|------|-------|---------|--------|-------|-------------|--------|---------|-------|----------|--------|
+| {name} | {title} | {company} | {domain} | {email or "LinkedIn only"} | {source} | {signal} | {channel} | {score} | {url} | ready |
 
 ## Dropped
 - {company}: {reason}
@@ -551,6 +560,27 @@ On subsequent runs, /prospect:
 - Shows only new companies not already in the list
 - Appends new batch with date header
 - Preserves status of existing prospects
+
+---
+
+## Handling Questions and Tangents
+
+If the user asks a question mid-flow ("what's a good email tool?",
+"why did you drop that company?", "what does behavioral signal mean?"),
+answer clearly, then resume where you left off.
+
+If they ask for a tool recommendation ("what email finder should I
+use?", "should I get Apollo?"), research current options via WebSearch.
+Give an honest answer based on their situation. Then offer to help
+connect it: "Want to set it up now? I can detect it and use it for
+the remaining prospects." Return to the flow after.
+
+If they want to change something mid-search ("add CFOs to the target
+list", "actually exclude fintech"), update icp.md and re-search.
+Acknowledge the change and continue.
+
+If they go off-topic, answer their question, then: "Back to
+prospecting — [resume where you left off]."
 
 ---
 

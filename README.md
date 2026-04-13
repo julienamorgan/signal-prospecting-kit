@@ -31,18 +31,13 @@ The skills live in `.claude/skills/`, so Claude Code picks them up automatically
 /push           Export to Instantly, Apollo, Outreach, HubSpot, or CSV
 ```
 
-You approve at every gate. Nothing moves forward without you.
+You approve at every gate. Nothing moves forward without you. After each approval, the next step starts automatically — no commands to remember.
 
 ## Tools (Optional)
 
-The kit works with zero tools connected. Web research handles everything. Connect your existing stack to make it faster:
+The kit works with zero tools connected. Web research handles everything — it pattern-guesses emails from public sources and falls back to LinkedIn connection requests when no email is found.
 
-| Tool | Connect | What it adds |
-|------|---------|--------------|
-| Clay | Install Clay MCP server | Contact enrichment with emails in one step |
-| Apollo | `export APOLLO_API_KEY=...` | Email finding by name + company |
-| Hunter | `export HUNTER_API_KEY=...` | Email finding by domain |
-| Instantly | `export INSTANTLY_API_KEY=...` | Direct campaign creation |
+If you have existing sales tools, the kit detects and uses them automatically. Connect via MCP server or API key — tell the kit what you have during setup and it'll walk you through connecting it.
 
 ## The Learning Loop
 
