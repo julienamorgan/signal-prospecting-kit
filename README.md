@@ -12,6 +12,8 @@ Each skill writes context the next one reads. The system gets sharper with every
 
 ## Install
 
+### Claude Code (CLI)
+
 ```bash
 git clone https://github.com/julienamorgan/signal-prospecting-kit.git
 cd signal-prospecting-kit
@@ -19,6 +21,15 @@ claude
 ```
 
 The skills live in `.claude/skills/`, so Claude Code picks them up automatically. No install script. No restart.
+
+### Claude Co-work (Desktop / Web)
+
+1. [Download the ZIP](https://github.com/julienamorgan/signal-prospecting-kit/archive/refs/heads/main.zip) and unzip it
+2. Open the `skills/` folder — you'll see all six skills inside
+3. In Claude, go to **Customize → Skills → +** and drag the skill folders in
+4. Toggle them on, start a new chat, type `/start`
+
+The `skills/` folder contains the same skills as `.claude/skills/` — just in a visible folder so you can find them easily.
 
 ## The Six Commands
 
